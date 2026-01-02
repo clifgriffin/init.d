@@ -96,15 +96,22 @@ elif [ -d "${gamelists_path:?}" ]; then
     ln -s "${gamelists_path:?}" "${default_gamelist_path:?}"
 else
     echo "Destination does not exist — attempting to move source..."
-    if mv "${default_gamelist_path:?}" "${gamelists_path:?}"; then
-        ln -s "${gamelists_path:?}" "${default_gamelist_path:?}"
+    if [[ -d "${default_gamelist_path:?}" ]]; then
+        if mv "${default_gamelist_path:?}" "${gamelists_path:?}"; then
+            ln -s "${gamelists_path:?}" "${default_gamelist_path:?}"
+        else
+            echo -e "\e[1;31mERROR:\e[0m Failed to move ${default_gamelist_path:?} to ${gamelists_path:?}. Symlink not created."
+        fi
     else
-        echo -e "\e[1;31mERROR:\e[0m Failed to move ${default_gamelist_path:?} to ${gamelists_path:?}. Symlink not created."
+        echo "Source does not exist either — creating destination and symlink."
+        mkdir -p "${gamelists_path:?}"
+        ln -s "${gamelists_path:?}" "${default_gamelist_path:?}"
     fi
 fi
 
 # Configure EmulationStation DE defaults
 if [ ! -f "${USER_HOME:?}/ES-DE/settings/es_settings.xml" ]; then
+    mkdir -p "${USER_HOME:?}/ES-DE/settings"
     cat <<EOF >"${USER_HOME:?}/ES-DE/settings/es_settings.xml"
 <?xml version="1.0"?>
 <string name="MediaDirectory" value="${downloaded_media_path:?}" />
